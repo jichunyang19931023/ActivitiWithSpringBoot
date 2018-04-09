@@ -6,6 +6,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+//用户信息表
 @Entity
 @Table(name = "user")
 public class User {
@@ -15,6 +16,7 @@ public class User {
 	
 	private String name;
     
+	//用户身份标识（1-申请者，2-审核者）
     private Integer type;
     
     private Integer delete_flag;

@@ -31,6 +31,7 @@ public class MiaoController {
 		List<VacationForm> forms = miaoService.formList();
 		Cookie[] cookies = request.getCookies();
 		String user = "";
+		//从cookie中获取当前用户
 		if (cookies != null) {
 			for (Cookie cookie : cookies) {
 				if (cookie.getName().equals("userInfo")) {
@@ -41,6 +42,7 @@ public class MiaoController {
 		}
 		List<HashMap<String, Object>> formsMap = new ArrayList<HashMap<String, Object>>();
 		for(VacationForm form : forms) {
+			//申请者只能看到自己申请的请假单信息
 			if(user.equals(form.getApplicant())) {
 				HashMap<String, Object> map = new HashMap<String, Object>();
 				map.put("id", form.getId());
@@ -51,6 +53,7 @@ public class MiaoController {
 				formsMap.add(map);
 			}
 		}
+		//将forms参数返回
 		model.addAttribute("forms",formsMap);
 		return "index";
 	}
@@ -61,6 +64,7 @@ public class MiaoController {
 		List<VacationForm> forms = miaoService.formList();
 		List<HashMap<String, Object>> formsMap = new ArrayList<HashMap<String, Object>>();
 		for(VacationForm form : forms) {
+			//审核者只能看到待审核状态的请假单
 			if("领导审核".equals(form.getState())) {
 				HashMap<String, Object> map = new HashMap<String, Object>();
 				map.put("id", form.getId());

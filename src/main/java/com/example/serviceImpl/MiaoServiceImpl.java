@@ -40,6 +40,7 @@ public class MiaoServiceImpl implements MiaoService {
 	@Autowired
 	private UserService userService;
 
+	//填写请假信息
 	@Override
 	public VacationForm writeForm(String title, String content, String applicant) {
 		VacationForm form = new VacationForm();
@@ -52,13 +53,17 @@ public class MiaoServiceImpl implements MiaoService {
 
 		Map<String, Object> variables = new HashMap<String, Object>();
 		variables.put("employee", form.getApplicant());
+		//开始请假流程，使用formId作为流程的businessKey
 		runtimeService.startProcessInstanceByKey("myProcess", form.getId().toString(), variables);
 		return form;
 	}
 
+	//根据选择，申请或放弃请假
 	@Override
 	public void completeProcess(String formId, String operator, String input) {
+		//根据businessKey找到当前任务节点
 		Task task = taskService.createTaskQuery().processInstanceBusinessKey(formId).singleResult();
+		//设置输入参数，使流程自动流转到对应节点
 		taskService.setVariable(task.getId(), "input", input);
 		taskService.complete(task.getId());
 		if ("apply".equals(input)) {
@@ -68,12 +73,15 @@ public class MiaoServiceImpl implements MiaoService {
 		}
 	}
 
+	//放弃请假
 	@Override
 	public boolean giveupVacation(String formId, String operator) {
 		Task task = taskService.createTaskQuery().processInstanceBusinessKey(formId).singleResult();
 		Map<String, Object> variables = new HashMap<String, Object>();
 		variables.put("employee", operator);
+		//认领任务
 		taskService.claim(task.getId(), operator);
+		//完成任务
 		taskService.complete(task.getId(), variables);
 		return true;
 	}
@@ -84,6 +92,7 @@ public class MiaoServiceImpl implements MiaoService {
 		Map<String, Object> variables = new HashMap<String, Object>();
 		List<User> users = userService.findAll();
 		String managers = "";
+		//获取所有具有审核权限的用户
 		for (User user : users) {
 			if (user.getType().equals(2)) {
 				managers += user.getName() + ",";
@@ -102,6 +111,7 @@ public class MiaoServiceImpl implements MiaoService {
 		Task task = taskService.createTaskQuery().processInstanceBusinessKey(formId).singleResult();
 		taskService.claim(task.getId(), operator);
 		taskService.complete(task.getId());
+		//更新请假信息的审核人
 		VacationForm form = vacationFormService.findOne(Integer.parseInt(formId));
 		if (form != null) {
 			form.setApprover(operator);
@@ -110,6 +120,7 @@ public class MiaoServiceImpl implements MiaoService {
 		return true;
 	}
 
+	//获取请假信息的当前流程状态
 	@Override
 	public HashMap<String, String> getCurrentState(String formId) {
 		HashMap<String, String> map = new HashMap<String, String>();
@@ -125,6 +136,7 @@ public class MiaoServiceImpl implements MiaoService {
 		return map;
 	}
 
+	//请假列表
 	@Override
 	public List<VacationForm> formList() {
 		List<VacationForm> formList = vacationFormService.findAll();
@@ -141,6 +153,7 @@ public class MiaoServiceImpl implements MiaoService {
 		return formList;
 	}
 
+	//登录验证用户名是否存在
 	@Override
 	public User loginSuccess(String username) {
 		List<User> users = userService.findByName(username);
@@ -151,6 +164,7 @@ public class MiaoServiceImpl implements MiaoService {
 		return null;
 	}
 
+	//获取当前登录用户
 	public String getCurrentUser(HttpServletRequest request) {
 		String user = "";
 		Cookie[] cookies = request.getCookies();
@@ -164,6 +178,7 @@ public class MiaoServiceImpl implements MiaoService {
 		return user;
 	}
 
+	//获取已执行的流程信息
 	@Override
 	public List historyState(String formId) {
 		List<HashMap<String, String>> processList = new ArrayList<HashMap<String, String>>();

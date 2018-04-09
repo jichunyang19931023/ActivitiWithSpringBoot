@@ -6,6 +6,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+//请假单信息表
 @Entity
 @Table(name = "vacation_form")
 public class VacationForm {
@@ -17,10 +18,13 @@ public class VacationForm {
     
     private String content;
     
+    //申请者
     private String applicant;
     
+    //审批者
     private String approver;
 
+    //申请所处状态
     @Transient
     private String state;
     
