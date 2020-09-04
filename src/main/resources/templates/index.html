@@ -3,43 +3,51 @@
 <head>
 <meta charset="UTF-8" />
 <title>工作流</title>
-<link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css"/>
+<link rel="stylesheet"
+	href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" />
 </head>
 <body>
-	<div>
-		<button onclick="writeForm()">填写请假单</button>
-		<button class="log" onclick="logout()">退出</button>
+	<button class="log" onclick="logout()">退出</button>
+	<div th:if="${modelCount}>0">
+		<button onclick="writeForm()" th:if="${userType == 1}">填写请假单</button>
+		<div th:if="${userType == 0}">
+			当前流程模板：<span class="current" th:text="${defaultModel.model_name}"></span>&nbsp;&nbsp;&nbsp;
+			<button data-toggle="modal" data-target="#myModal2">修改流程</button>
+		</div>
+		<div th:if="${userType != 0}">
+			<table th:if="${forms.size()}>0">
+				<thead>
+					<tr>
+						<td>请假标题</td>
+						<td>请假内容</td>
+						<td>请假人</td>
+						<td>状态</td>
+						<td>操作</td>
+					</tr>
+				</thead>
+				<tr th:each="form:${forms}">
+					<td th:text="${form.title}"></td>
+					<td th:text="${form.content}"></td>
+					<td th:text="${form.applicant}"></td>
+					<td th:text="${form.state}"></td>
+					<td>
+						<button th:each="button:${form.buttons}"
+							th:text="${#strings.arraySplit(button,'=')[0]}"
+							th:onclick="'javascript:operate(\''+${form.id}+'\',\''+${#strings.arraySplit(button,'=')[1]}+'\')'"></button>
+							
+						<button th:onclick="'javascript:checkState(\''+${form.id}+'\')'"
+							data-toggle="modal" data-target="#myModal">查看流程</button>
+					</td>
+				</tr>
+			</table>
+			<div th:if="${forms.size()}==0">
+				<br />暂无请假数据
+			</div>
+		</div>
 	</div>
-	<table th:if="${forms.size()}>0">
-		<thead>
-			<tr>
-				<td>请假标题</td>
-				<td>请假内容</td>
-				<td>请假人</td>
-				<td>状态</td>
-				<td>操作</td>
-			</tr>
-		</thead>
-		<tr th:each="form:${forms}">
-			<td th:text="${form.title}"></td>
-			<td th:text="${form.content}"></td>
-			<td th:text="${form.applicant}"></td>
-			<td th:text="${form.state}"></td>
-			<td>
-				<button th:if="${form.state} == '填写请假单'"
-					th:onclick="'javascript:apply(\''+${form.id}+'\')'">申请请假</button>
-				<button th:if="${form.state} == '填写请假单'"
-					th:onclick="'javascript:giveup(\''+${form.id}+'\')'">放弃请假</button>
-				<button th:onclick="'javascript:checkState(\''+${form.id}+'\')'"  data-toggle="modal" data-target="#myModal">查看流程</button>
-			</td>
-		</tr>
-	</table>
-	<div th:if="${forms.size()}==0">
-		<br />暂无请假数据
-	</div>
-
-
-
+	
+	<div th:if="${modelCount}==0">暂无流程模板，请先配置！</div>
+	
 	<!-- 模态框（Modal） -->
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog"
 		aria-labelledby="myModalLabel" aria-hidden="true">
@@ -50,9 +58,7 @@
 						aria-hidden="true">&times;</button>
 					<h4 class="modal-title" id="myModalLabel">流程</h4>
 				</div>
-				<div class="modal-body">
-					
-				</div>
+				<div class="modal-body"></div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">关闭
 					</button>
@@ -60,13 +66,42 @@
 			</div>
 		</div>
 	</div>
+	
+	<div class="modal fade" id="myModal2" tabindex="-1" role="dialog"
+		aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h4 class="modal-title" id="myModalLabel">修改流程</h4>
+				</div>
+				<div class="modal-body">
+					<select id="models">
+						<option th:each="model:${models}" th:value="${model.id}" th:text="${model.name}" th:selected="${model.id} ==${defaultModel.model_id}"></option>
+					</select>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-success" data-dismiss="modal" onclick="changeWorkFlow()" >确认修改</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="myAlert" class="alert alert-success">
+		<a href="#" class="close" data-dismiss="alert">&times;</a>
+		<strong>修改流程成功！</strong>
+	</div>
 </body>
 </html>
 
 <style>
-body{
-	margin:10px 10px 100px 10px;
+body {
+	margin: 10px 10px 100px 10px;
 }
+
 * {
 	font-family: "微软雅黑";
 	font-size: 15px;
@@ -77,7 +112,7 @@ td {
 	border: 1px solid #ccc;
 }
 
-button {
+button,select{
 	padding: 5px;
 	margin: 5px 0;
 	border: 1px solid #aaa;
@@ -90,12 +125,46 @@ button {
 	background: #ec5757;
 	color: #fff;
 }
+
+.upload{
+	float:right;
+}
+
+.upload input{
+	padding: 5px;
+	margin: 5px;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	float:left;
+}
+.current{
+	color:#079c21;
+}
+
+#models{
+	width: 75%;
+}
 </style>
 
 <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js" />
-<script
-	src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script>
+<script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script th:inline="javascript">
+
+	$('#myAlert').hide();
+	refreshBpmn();
+	
+	function refreshBpmn() {
+		var modelId = [[${defaultModel.model_id}]];
+		$.ajax({
+			url : "/refreshBpmn",
+			data : {
+				"modelId" : modelId
+			},
+			success : function(data) {
+			}
+		});
+	}
+	
 	function writeForm() {
 		location.href = "/form";
 	}
@@ -111,35 +180,20 @@ button {
 		});
 	}
 
-	function apply(formId) {
+	function operate(formId, operation) {
 		var operator = getUser();
 		if (operator == "") {
 			location.href = "/";
 		}
-		$.ajax({
-			url : "/apply",
-			data : {
-				"formId" : formId,
-				"operator" : operator
-			},
-			success : function(data) {
-				if (data.code == 200) {
-					location.href = "/home";
-				}
-			}
-		});
-	}
-
-	function giveup(formId) {
-		var operator = getUser();
-		if (operator == "") {
-			location.href = "/";
+		if(operation == "null"){
+			operation = "";
 		}
 		$.ajax({
-			url : "/giveup",
+			url : "/next",
 			data : {
 				"formId" : formId,
-				"operator" : operator
+				"operator" : operator,
+				"input" : operation
 			},
 			success : function(data) {
 				if (data.code == 200) {
@@ -159,15 +213,35 @@ button {
 				if (data.code == 200) {
 					var processList = data.info;
 					var html = "";
-					$.each(processList, function(i,item){
-						html += "<span>"+item.name+"(操作人："+item.operator+")"+"</span><br/><br/>";
+					$.each(processList, function(i, item) {
+						html += "<span>" + item.name + "(操作人：" + item.operator
+								+ ")" + "</span><br/><br/>";
 					});
 					$(".modal-body").html(html);
 				}
 			}
 		});
 	}
-
+	
+	function changeWorkFlow(){
+		$('#myAlert').show();
+		var selectId = $("#models option:selected").val();
+		$.ajax({
+			url : "/changeWorkFlow",
+			data : {
+				"modelId" : selectId
+			},
+			success : function(data) {
+				if (data.code == 200) {
+					location.href = "/home";
+					setTimeout(function(){
+						$('#myAlert').alert();
+					},2000);
+				}
+			}
+		});
+	}
+	
 	function getUser() {
 		var name = "userInfo=";
 		var user = "";

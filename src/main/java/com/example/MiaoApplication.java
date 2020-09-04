@@ -7,7 +7,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.activiti.engine.history.HistoricTaskInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -84,39 +83,15 @@ public class MiaoApplication {
 		return result;
 	}
 	
-	//申请者放弃请假
-	@GetMapping( "/giveup")
+	//下一步操作
+	@GetMapping( "/next")
 	public ResultInfo giveup(HttpServletRequest request){
 		ResultInfo result = new ResultInfo();
 		String formId = request.getParameter("formId");
 		String operator = request.getParameter("operator");
-		miaoService.completeProcess(formId, operator, "giveup");
+		String input = request.getParameter("input");
+		miaoService.completeProcess(formId, operator, input);
 		result.setCode(200);
-		result.setMsg("放弃请假成功");
-		return result;
-	}
-	
-	//申请者申请请假
-	@GetMapping( "/apply")
-	public ResultInfo apply(HttpServletRequest request){
-		ResultInfo result = new ResultInfo();
-		String formId = request.getParameter("formId");
-		String operator = request.getParameter("operator");
-		miaoService.completeProcess(formId, operator, "apply");
-		result.setCode(200);
-		result.setMsg("申请请假成功");
-		return result;
-	}
-	
-	//审批者审核请假信息
-	@GetMapping( "/approve")
-	public ResultInfo approve(HttpServletRequest request){
-		ResultInfo result = new ResultInfo();
-		String formId = request.getParameter("formId");
-		String operator = request.getParameter("operator");
-		miaoService.approverVacation(formId, operator);
-		result.setCode(200);
-		result.setMsg("请假审核成功");
 		return result;
 	}
 	
@@ -136,6 +111,27 @@ public class MiaoApplication {
 		List process = miaoService.historyState(formId);
 		result.setCode(200);
 		result.setInfo(process);
+		return result;
+    }
+	
+	@GetMapping( "/changeWorkFlow")
+	public ResultInfo changeWorkFlow(HttpServletRequest request){
+		String modelId = request.getParameter("modelId");
+		ResultInfo result = new ResultInfo();
+		String fileName = miaoService.getJsonBpmn(modelId, request);
+		result.setCode(200);
+		result.setInfo(fileName);
+		return result;
+    }
+	
+	
+	@GetMapping( "/refreshBpmn")
+	public ResultInfo refreshBpmn(HttpServletRequest request){
+		String modelId = request.getParameter("modelId");
+		ResultInfo result = new ResultInfo();
+		String fileName = miaoService.refreshBpmn(modelId);
+		result.setCode(200);
+		result.setInfo(fileName);
 		return result;
     }
 }

@@ -52,11 +52,7 @@ button {
 			},
 			success : function(data) {
 				if(data.code == 200){
-					if(data.info.type == 1){
-						location.href="/home";
-					}else{
-						location.href="/homeApprover";
-					}
+					location.href="/home";
 				}else{
 					alert(data.msg);
 				}

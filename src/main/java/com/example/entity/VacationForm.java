@@ -8,7 +8,7 @@ import javax.persistence.Transient;
 
 //请假单信息表
 @Entity
-@Table(name = "vacation_form")
+@Table(name = "VACATION_FORM")
 public class VacationForm {
     @Id
     @GeneratedValue

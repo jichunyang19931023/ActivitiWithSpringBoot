@@ -8,7 +8,7 @@ import javax.persistence.Transient;
 
 //用户信息表
 @Entity
-@Table(name = "user")
+@Table(name = "USER")
 public class User {
     @Id
     @GeneratedValue

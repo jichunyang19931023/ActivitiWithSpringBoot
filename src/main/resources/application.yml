@@ -1,11 +1,16 @@
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://10.8.0.170:3306/spring-boot-activiti?useUnicode=true&characterEncoding=utf8&useSSL=false
+#    username: gogs
+#    password: Password1234@
     url: jdbc:mysql://localhost:3306/spring-boot-activiti?useUnicode=true&characterEncoding=utf8&useSSL=false
     username: root
-    password:
+    password: 
   jpa:
-    hibernate:       
+    hibernate:
+      naming:
+         physical-strategy: com.example.util.MySQLUpperCaseStrategy
       ddl-auto: update
     show-sql: true
   thymeleaf:
@@ -15,3 +20,5 @@ spring:
     encoding: UTF-8
     content-type: text/html; charset=utf-8
     cache: false
+  activiti:
+    database-schema-update: true
