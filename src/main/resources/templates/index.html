@@ -15,32 +15,28 @@
 			<button data-toggle="modal" data-target="#myModal2">修改流程</button>
 		</div>
 		<div th:if="${userType != 0}">
-			<table th:if="${forms.size()}>0">
-				<thead>
-					<tr>
-						<td>请假标题</td>
-						<td>请假内容</td>
-						<td>请假人</td>
-						<td>状态</td>
-						<td>操作</td>
+			<div th:if="${forms.size()}!=1">
+				<table th:if="${forms[0].size()} > 1">
+					<tr th:each="form,formStat:${forms}">
+						<td th:each="f:${form}" th:text="${f.value}"></td>
+						<td th:if="${formStat.index} == 0">
+							操作
+						</td>
+						<td th:if="${formStat.index} != 0">
+							<span th:if="${formButtons[formStat.index-1].buttons.size()} > 0">
+								<button th:each="button : ${formButtons[formStat.index-1].buttons}" th:text="${button.name}"
+								th:onclick="'javascript:operate(\''+${formButtons[formStat.index-1].formId}+'\',\''+${button.operation}+'\')'"></button>
+							</span>
+								
+							<button th:onclick="'javascript:checkState(\''+${formButtons[formStat.index-1].formId}+'\')'"
+								data-toggle="modal" data-target="#myModal">查看流程</button>
+						</td>
 					</tr>
-				</thead>
-				<tr th:each="form:${forms}">
-					<td th:text="${form.title}"></td>
-					<td th:text="${form.content}"></td>
-					<td th:text="${form.applicant}"></td>
-					<td th:text="${form.state}"></td>
-					<td>
-						<button th:each="button:${form.buttons}"
-							th:text="${#strings.arraySplit(button,'=')[0]}"
-							th:onclick="'javascript:operate(\''+${form.id}+'\',\''+${#strings.arraySplit(button,'=')[1]}+'\')'"></button>
-							
-						<button th:onclick="'javascript:checkState(\''+${form.id}+'\')'"
-							data-toggle="modal" data-target="#myModal">查看流程</button>
-					</td>
-				</tr>
-			</table>
-			<div th:if="${forms.size()}==0">
+				</table>
+				<div th:if="${forms[0].size()}==1">请在流程文件里面配置所需表单对象！</div>
+			</div>
+			
+			<div th:if="${forms.size()}==1">
 				<br />暂无请假数据
 			</div>
 		</div>
@@ -149,21 +145,7 @@ button,select{
 <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js" />
 <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script th:inline="javascript">
-
 	$('#myAlert').hide();
-	refreshBpmn();
-	
-	function refreshBpmn() {
-		var modelId = [[${defaultModel.model_id}]];
-		$.ajax({
-			url : "/refreshBpmn",
-			data : {
-				"modelId" : modelId
-			},
-			success : function(data) {
-			}
-		});
-	}
 	
 	function writeForm() {
 		location.href = "/form";
@@ -180,7 +162,7 @@ button,select{
 		});
 	}
 
-	function operate(formId, operation) {
+	function operate(processId, operation) {
 		var operator = getUser();
 		if (operator == "") {
 			location.href = "/";
@@ -191,7 +173,7 @@ button,select{
 		$.ajax({
 			url : "/next",
 			data : {
-				"formId" : formId,
+				"processId" : processId,
 				"operator" : operator,
 				"input" : operation
 			},

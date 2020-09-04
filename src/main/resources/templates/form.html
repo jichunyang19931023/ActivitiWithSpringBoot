@@ -5,10 +5,12 @@
 <title>工作流</title>
 </head>
 <body>
-	<div>
-		<span>填写请假单</span>
-		<input id="title" placeholder="题目" /><br />
-		<textarea id="content" placeholder="内容" rows="10"></textarea>
+	<div class="main">
+		<span>填写信息</span>
+		<div class="item" th:each="form:${formNames}">
+			<span class="name" th:text="${form.name}"></span>
+			<input class="value" th:id="${form.id}"/>
+		</div>
 		<button onclick="submit()">提交</button>
 	</div>
 </body>
@@ -20,20 +22,29 @@
 	font-size: 15px;
 	margin: 0 auto;
 }
-div{
+.main{
 	width: 400px;
 	margin-top:100px;
 	text-align:center;
 	padding-top:10px;
 }
-input,textarea,button{
+.item{
+	float: left;
+}
+button{
 	padding: 3px;
 	margin-top:10px;
 }
-input, textarea {
+.name{
+	float:left;
+}
+.value{
 	width: 400px;
+	float:left;
+	padding: 3px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
+	margin-bottom:10px;
 }
 
 button {
@@ -42,19 +53,24 @@ button {
 </style>
 
 <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js" />
-<script>
+<script  th:inline="javascript">
 	function submit() {
 		var operator = getUser();
 		if(operator == ""){
 			location.href = "/";
 		}
+		var processId = [[${processId}]];
+		var formObj = [[${formNames}]];
+		var data = {};
+		data.processId = processId;
+		data.operator = operator;
+		
+		$.each(formObj, function(i, item){
+			data[item.id] = $("#"+item.id).val();
+		});
 		$.ajax({
-			url : "/writeForm",
-			data : {
-				"title" : $("#title").val(),
-				"content" : $("#content").val(),
-				"operator" : operator
-			},
+			url : "/next",
+			data : data,
 			success : function(data) {
 				if(data.code == 200){
 					location.href="/home";
@@ -62,7 +78,7 @@ button {
 			}
 		});
 	}
-	
+	//获取当前用户
 	function getUser(){
 		var name="userInfo=";
 		var user = "";
